@@ -22,7 +22,7 @@ module.exports = nodeunit.testCase({
 
   },
   'over': function(t) {
-    t.expect(2);
+    t.expect(4);
 
     var timert = supr.setTimeout(function() {
       t.ok(true);
@@ -35,10 +35,12 @@ module.exports = nodeunit.testCase({
     setTimeout(function() {
 
       supr.clearTimeout(timert);
-      supr.clearInterval(timeri);
+      t.equal(Object.keys(supr.setTimeout.timers).length, 1, 'setTimeout0');
+      t.equal(Object.keys(supr.setInterval.timers).length, 1, 'setInterval0');
 
-      t.equal(Object.keys(supr.setTimeout.timers).length, 0, 'setTimeout');
-      t.equal(Object.keys(supr.setInterval.timers).length, 0, 'setInterval');
+      supr.clearInterval(timeri);
+      t.equal(Object.keys(supr.setInterval.timers).length, 0, 'setInterval1');
+      t.equal(Object.keys(supr.setTimeout.timers).length, 0, 'setTimeout1');
 
       setTimeout(function() {
         t.done();

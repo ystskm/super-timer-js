@@ -83,9 +83,9 @@
     if(itv > Max)
       throw new Error('Timer value is out of operation.');
 
-    var timer = orig.setTimeout(one, DefMax);
-    var tid = typeof timer == 'object' && timer.id == null
-      ? (timer.id = counter++): timer;
+    var timer = superTimeout(then, itv);
+    var tid = typeof timer == 'object' && timer.itv_id == null
+      ? (timer.itv_id = counter++): timer;
 
     var value = superInterval.timers[tid] = {
       self: this,
@@ -94,25 +94,21 @@
     };
     return timer;
 
-    function one() {
-      itv -= DefMax;
-      if(itv <= 0) {
-        itv = a[1];
-        a[0].apply(value.self, a.slice(2));
-      }
-      value.working = orig.setTimeout(one, Math.min(DefMax, itv));
+    function then() {
+      a[0].apply(value.self, a.slice(2));
+      value.working = superTimeout(then, itv);
     }
 
   }
 
   function supercInterval() {
     var a = Array.prototype.slice.call(arguments);
-    var tid = a[0].id == null ? a[0]: a[0].id;
+    var tid = a[0].itv_id == null ? a[0]: a[0].itv_id;
     var value = superInterval.timers[tid];
     if(!value)
       return orig.clearInterval(a[0]);
     delete superInterval.timers[tid];
-    return orig.clearTimeout(value.working)
+    return supercTimeout(value.working);
   }
 
 })(typeof window != 'undefined', typeof module != 'undefined');
