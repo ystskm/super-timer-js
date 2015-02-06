@@ -23,6 +23,7 @@
   })();
   has_mod && (module.exports = supr);
 
+  var counter = 0;
   var DefMax = Math.pow(2, 31) - 1;
   var Max = Number.MAX_VALUE;
 
@@ -42,7 +43,10 @@
       throw new Error('Timer value is out of operation.');
 
     var timer = orig.setTimeout(one, DefMax);
-    var value = superTimeout.timers[timer] = {
+    var tid = typeof timer == 'object' && timer.id == null
+      ? (timer.id = counter++): timer;
+
+    var value = superTimeout.timers[tid] = {
       self: this,
       working: timer,
       args: a
@@ -52,7 +56,7 @@
     function one() {
       itv -= DefMax;
       if(itv <= 0) {
-        delete superTimeout.timers[timer];
+        delete superTimeout.timers[tid];
         return a[0].apply(value.self, a.slice(2));
       }
       value.working = orig.setTimeout(one, Math.min(DefMax, itv));
@@ -62,13 +66,15 @@
 
   function supercTimeout() {
     var a = Array.prototype.slice.call(arguments);
-    var tid = a[0], value = superTimeout.timers[tid];
+    var tid = a[0].id == null ? a[0]: a[0].id;
+    var value = superTimeout.timers[tid];
     if(!value)
-      return orig.clearTimeout(tid);
+      return orig.clearTimeout(a[0]);
+    delete superTimeout.timers[tid];
     return orig.clearTimeout(value.working)
   }
 
-  function superIntrval() {
+  function superInterval() {
     var a = Array.prototype.slice.call(arguments);
     var itv = a[1];
 
@@ -78,7 +84,10 @@
       throw new Error('Timer value is out of operation.');
 
     var timer = orig.setTimeout(one, DefMax);
-    var value = superInterval.timers[timer] = {
+    var tid = typeof timer == 'object' && timer.id == null
+      ? (timer.id = counter++): timer;
+
+    var value = superInterval.timers[tid] = {
       self: this,
       working: timer,
       args: a
@@ -96,11 +105,13 @@
 
   }
 
-  function supercIntrval() {
+  function supercInterval() {
     var a = Array.prototype.slice.call(arguments);
-    var tid = a[0], value = superInterval.timers[tid];
+    var tid = a[0].id == null ? a[0]: a[0].id;
+    var value = superInterval.timers[tid];
     if(!value)
-      return orig.clearInterval(tid);
+      return orig.clearInterval(a[0]);
+    delete superInterval.timers[tid];
     return orig.clearTimeout(value.working)
   }
 
