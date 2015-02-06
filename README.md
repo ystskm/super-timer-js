@@ -10,7 +10,7 @@ Install with [npm](http://npmjs.org/):
 
     npm install supertimer
     
-## API - Set WebSocket, candidate hosts and options
+## API - You can make Long-Long interval timer.
 
 ```js
     var supr = require('supertimer');
