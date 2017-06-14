@@ -2,6 +2,14 @@
 // supertiemr
 (function(has_win, has_mod) {
 
+  var NULL = null, TRUE = true, FALSE = false;
+  var g;
+  if(has_win) {
+    g = window;
+  } else {
+    g = typeof self == 'undefined' ? this: self;
+  }
+
   var orig = {
     setTimeout: setTimeout,
     clearTimeout: clearTimeout,
@@ -17,11 +25,13 @@
   };
 
   // exports
-  has_win && (function() {
+  if(has_win) {
     for( var k in supr)
-      window[k] = supr[k];
-  })();
-  has_mod && (module.exports = supr);
+      window[k] = supr[k]; // change default timer to super-timer
+  }
+  if(has_mod) {
+    module.exports = supr;
+  }
 
   var counter = 0;
   var DefMax = Math.pow(2, 31) - 1;
@@ -32,22 +42,30 @@
 
   function superTimeout() {
 
+    var self = this;
     var a = Array.prototype.slice.call(arguments);
     var itv = a[1];
 
-    if(!itv && typeof setImmediate == 'function')
+    if(!itv && isFunction(setImmediate)) {
       return setImmediate.apply(setImmediate, [a[0]].concat(a.slice(2)));
-    if(itv <= DefMax)
-      return orig.setTimeout.apply(orig.setTimeout, a);
-    if(itv > Max)
+    }
+    if(itv <= DefMax) {
+      return orig.setTimeout.apply(g, a);
+    }
+    if(itv > Max) {
       throw new Error('Timer value is out of operation.');
+    }
 
     var timer = orig.setTimeout(one, DefMax);
-    var tid = typeof timer == 'object' && timer.id == null
-      ? (timer.id = counter++): timer;
+    var tid
+    if(is('object', timer) && timer.id == NULL) {
+      tid = timer.id = counter++;
+    } else {
+      tid = timer;
+    }
 
     var value = superTimeout.timers[tid] = {
-      self: this,
+      self: self,
       working: timer,
       args: a
     };
@@ -66,29 +84,38 @@
 
   function supercTimeout() {
     var a = Array.prototype.slice.call(arguments);
-    var tid = a[0].id == null ? a[0]: a[0].id;
+    var tid = a[0].id == NULL ? a[0]: a[0].id;
     var value = superTimeout.timers[tid];
-    if(!value)
+    if(!value) {
       return orig.clearTimeout(a[0]);
+    }
     delete superTimeout.timers[tid];
     return orig.clearTimeout(value.working)
   }
 
   function superInterval() {
+
+    var self = this;
     var a = Array.prototype.slice.call(arguments);
     var itv = a[1];
 
-    if(itv <= DefMax)
+    if(itv <= DefMax) {
       return orig.setInterval.apply(orig.setInterval, a);
-    if(itv > Max)
+    }
+    if(itv > Max) {
       throw new Error('Timer value is out of operation.');
+    }
 
     var timer = superTimeout(then, itv);
-    var tid = typeof timer == 'object' && timer.itv_id == null
-      ? (timer.itv_id = counter++): timer;
+    var tid;
+    if(is('object', timer) && timer.itv_id == NULL) {
+      tid = timer.itv_id = counter++;
+    } else {
+      tid = timer;
+    }
 
     var value = superInterval.timers[tid] = {
-      self: this,
+      self: self,
       working: timer,
       args: a
     };
@@ -103,12 +130,24 @@
 
   function supercInterval() {
     var a = Array.prototype.slice.call(arguments);
-    var tid = a[0].itv_id == null ? a[0]: a[0].itv_id;
+    var tid = a[0].itv_id == NULL ? a[0]: a[0].itv_id;
     var value = superInterval.timers[tid];
-    if(!value)
+    if(!value) {
       return orig.clearInterval(a[0]);
+    }
     delete superInterval.timers[tid];
     return supercTimeout(value.working);
+  }
+
+  // ----------------- //
+  function is(ty, x) {
+    return typeof x == ty;
+  }
+  function isFunction(x) {
+    return is('function', x);
+  }
+  function isArray(x) {
+    return Array.isArray(x);
   }
 
 })(typeof window != 'undefined', typeof module != 'undefined');
