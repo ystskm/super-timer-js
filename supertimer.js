@@ -56,7 +56,7 @@
       throw new Error('Timer value is out of operation.');
     }
 
-    var timer = orig.setTimeout(one, DefMax);
+    var timer = orig.setTimeout.call(g, one, DefMax);
     var tid
     if(is('object', timer) && timer.id == NULL) {
       tid = timer.id = counter++;
@@ -77,7 +77,7 @@
         delete superTimeout.timers[tid];
         return a[0].apply(value.self, a.slice(2));
       }
-      value.working = orig.setTimeout(one, Math.min(DefMax, itv));
+      value.working = orig.setTimeout.call(g, one, Math.min(DefMax, itv));
     }
 
   }
@@ -87,10 +87,10 @@
     var tid = a[0].id == NULL ? a[0]: a[0].id;
     var value = superTimeout.timers[tid];
     if(!value) {
-      return orig.clearTimeout(a[0]);
+      return orig.clearTimeout.call(g, a[0]);
     }
     delete superTimeout.timers[tid];
-    return orig.clearTimeout(value.working)
+    return orig.clearTimeout.call(g, value.working)
   }
 
   function superInterval() {
@@ -133,7 +133,7 @@
     var tid = a[0].itv_id == NULL ? a[0]: a[0].itv_id;
     var value = superInterval.timers[tid];
     if(!value) {
-      return orig.clearInterval(a[0]);
+      return orig.clearInterval.call(g, a[0]);
     }
     delete superInterval.timers[tid];
     return supercTimeout(value.working);
