@@ -100,7 +100,7 @@
     var itv = a[1];
 
     if(itv <= DefMax) {
-      return orig.setInterval.apply(orig.setInterval, a);
+      return orig.setInterval.apply(g, a);
     }
     if(itv > Max) {
       throw new Error('Timer value is out of operation.');
